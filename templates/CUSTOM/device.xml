@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0" configId="1">
+  <specVersion>
+    <major>1</major>
+    <minor>1</minor>
+  </specVersion>
+  <device>
+    <deviceType>urn:schemas-upnp-org:device:Computer:1</deviceType>
+    <friendlyName>WIN-OFFICE-XAVIER</friendlyName>
+    <manufacturer>Microsoft Corporation</manufacturer>
+    <manufacturerURL>https://www.microsoft.com</manufacturerURL>
+    <modelDescription>Windows 10 Professional Workstation</modelDescription>
+    <modelName>Windows 10 Pro</modelName>
+    <modelNumber>10.0.19044</modelNumber>
+    <modelURL>https://www.microsoft.com/windows</modelURL>
+    <serialNumber>WIN10-AYB-953147</serialNumber>
+    <UDN>uuid:ab1f28e0-3b2c-11e5-b345-feff819cdc9f</UDN>
+    <UPC>012345678901</UPC>
+
+    <serviceList>
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:FileSharing:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:SambaShare</serviceId>
+        <SCPDURL>/smb/scpd.xml</SCPDURL>
+        <controlURL>/smb/control</controlURL>
+        <eventSubURL>/smb/events</eventSubURL>
+      </service>
+
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:PrintSpooler:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:PrintService</serviceId>
+        <SCPDURL>/printer/scpd.xml</SCPDURL>
+        <controlURL>/printer/control</controlURL>
+        <eventSubURL>/printer/events</eventSubURL>
+      </service>
+
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:RDP:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:RemoteDesktop</serviceId>
+        <SCPDURL>/rdp/scpd.xml</SCPDURL>
+        <controlURL>/rdp/control</controlURL>
+        <eventSubURL>/rdp/events</eventSubURL>
+      </service>
+
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:WMI:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:WmiService</serviceId>
+        <SCPDURL>/wmi/scpd.xml</SCPDURL>
+        <controlURL>/wmi/control</controlURL>
+        <eventSubURL>/wmi/events</eventSubURL>
+      </service>
+
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:NetBIOS:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:NetBIOSNameService</serviceId>
+        <SCPDURL>/netbios/scpd.xml</SCPDURL>
+        <controlURL>/netbios/control</controlURL>
+        <eventSubURL>/netbios/events</eventSubURL>
+      </service>
+    </serviceList>
+
+    <deviceList>
+      <device>
+        <deviceType>urn:schemas-upnp-org:device:Printer:1</deviceType>
+        <friendlyName>OfficePrinter</friendlyName>
+        <manufacturer>HP</manufacturer>
+        <modelName>HP LaserJet 400</modelName>
+        <UDN>uuid:printer-01</UDN>
+      </device>
+    </deviceList>
+
+    <presentationURL>http://$local_ip:$local_port</presentationURL>
+  </device>
+</root>
