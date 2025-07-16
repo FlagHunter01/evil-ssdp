@@ -30,6 +30,11 @@ import base64
 import random
 import netifaces
 
+"""
+[CUSTOM] Force line buffering
+"""
+sys.stdout = open(1, 'w', 1)
+
 
 BANNER = r'''
 ___________     .__.__    _________ _________________ __________
