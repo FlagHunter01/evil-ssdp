@@ -54,11 +54,14 @@ class PC:
     """PC (Print Color)
     Used to generate some colorful, relevant, nicely formatted status messages.
     """
-    green = '\033[92m'
-    blue = '\033[94m'
-    orange = '\033[93m'
-    red = '\033[91m'
-    endc = '\033[0m'
+    """
+    [CUSTOM] Delete color renders to make the output file-compatible
+    """
+    green = ''
+    blue = ''
+    orange = ''
+    red = ''
+    endc = ''
     ok_box = blue + '[*] ' + endc
     note_box = green + '[+] ' + endc
     warn_box = orange + '[!] ' + endc
