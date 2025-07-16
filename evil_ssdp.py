@@ -177,14 +177,17 @@ class SSDPListener:
         M-SEARCH - after that it will be silent. This keeps the output more
         readable, as clients can get chatty.
         """
+        """
+        [CUSTOM] Deactivate logging of M-SEARCH alltogeather
+        """
         remote_ip = address[0]
         header_st = re.findall(r'(?i)\\r\\nST:(.*?)\\r\\n', str(data))
         if 'M-SEARCH' in str(data) and header_st:
             requested_st = header_st[0].strip()
             if re.match(self.valid_st, requested_st):
                 if (address[0], requested_st) not in self.known_hosts:
-                    print(PC.msearch_box + "New Host {}, Service Type: {}"
-                          .format(remote_ip, requested_st))
+                    #print(PC.msearch_box + "New Host {}, Service Type: {}"
+                    #      .format(remote_ip, requested_st))
                     self.known_hosts.append((address[0], requested_st))
                 if not self.analyze_mode:
                     self.send_location(address, requested_st)
