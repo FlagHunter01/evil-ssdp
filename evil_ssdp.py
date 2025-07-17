@@ -29,6 +29,7 @@ import signal
 import base64
 import random
 import netifaces
+import sdnotify
 
 """
 [CUSTOM] Force line buffering
@@ -655,6 +656,9 @@ def main():
     try:
         ssdp_server.start()
         web_server.start()
+        # [CUSTOM] Send sd_notify READY signal
+        notifier = sdnotify.SystemdNotifier()
+        notifier.notify("READY=1")
         signal.pause()
     except (KeyboardInterrupt, SystemExit):
         print("\n" + PC.warn_box +
