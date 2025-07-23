@@ -428,10 +428,14 @@ def build_class(upnp_args):
             agent = self.headers['user-agent']
             verb = self.command
             path = self.path
+            """
+            [CUSTOM] Dectivate logging of XML requests
+            """
             if 'xml' in self.path:
-                print(PC.xml_box + "Host: {}, User-Agent: {}"
-                      .format(address, agent))
-                print("               {} {}".format(verb, path))
+                #print(PC.xml_box + "Host: {}, User-Agent: {}"
+                #      .format(address, agent))
+                #print("               {} {}".format(verb, path))
+                pass
             elif 'xxe.html' in self.path:
                 data = PC.xxe_box + "Host: {}, User-Agent: {}\n".format(
                     address, agent)
