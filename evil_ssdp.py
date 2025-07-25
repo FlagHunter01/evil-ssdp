@@ -38,8 +38,10 @@ All 'print' are replaced with logging
 """
 logger = logging.getLogger()
 logger.setLevel('INFO')
+formatter = logging.Formatter('%(levelname)s: %(message)s')
 handler = logging.StreamHandler(sys.stderr)
 handler.setLevel(logging.DEBUG)
+handler.setFormatter(formatter)
 logger.addHandler(handler)
 #sys.stdout = open(1, 'w', 1)
 
